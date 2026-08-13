@@ -194,11 +194,11 @@ def generate_jwt(uid, password):
 
 # ==================== VERCEL HANDLER ====================
 
-def handler(request):
-    method = request.get("method", "GET")
-    path = request.get("path", "")
+def handler(event, context):
+    """Vercel Python serverless function handler"""
+    method = event.get("method", "GET")
+    path = event.get("path", "")
     
-    # تم التغيير من /NIROB إلى /VINOX
     if path != "/VINOX":
         return {
             "statusCode": 404,
@@ -207,13 +207,13 @@ def handler(request):
         }
     
     if method == "GET":
-        params = request.get("query", {})
+        params = event.get("query", {})
         uid = params.get("uid", [""])[0] if isinstance(params.get("uid"), list) else params.get("uid", "")
         password = params.get("password", [""])[0] if isinstance(params.get("password"), list) else params.get("password", "")
     
     elif method == "POST":
         try:
-            body = json.loads(request.get("body", "{}"))
+            body = json.loads(event.get("body", "{}"))
             uid = body.get("uid", "")
             password = body.get("password", "")
         except:
