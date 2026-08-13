@@ -1,4 +1,5 @@
-import requests, json, time, random, gzip, ssl, http.client, urllib3
+from flask import Flask, request, jsonify
+import requests, time, random, gzip, ssl, http.client, urllib3
 from io import BytesIO
 from datetime import datetime
 from Crypto.Cipher import AES
@@ -7,6 +8,8 @@ import MajoRLoGinrEq_pb2
 import MajoRLoGinrEs_pb2
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+app = Flask(__name__)
 
 # ==================== CONSTANTS ====================
 AES_KEY = b'Yg&tc%DEuh6%Zc^8'
@@ -192,57 +195,34 @@ def generate_jwt(uid, password):
     
     return result
 
-# ==================== VERCEL HANDLER ====================
+# ==================== FLASK ROUTES ====================
 
-def handler(event, context):
-    """Vercel Python serverless function handler"""
-    method = event.get("method", "GET")
-    path = event.get("path", "")
-    
-    if path != "/VINOX":
-        return {
-            "statusCode": 404,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"success": False, "message": "Use /VINOX endpoint"})
-        }
-    
-    if method == "GET":
-        params = event.get("query", {})
-        uid = params.get("uid", [""])[0] if isinstance(params.get("uid"), list) else params.get("uid", "")
-        password = params.get("password", [""])[0] if isinstance(params.get("password"), list) else params.get("password", "")
-    
-    elif method == "POST":
-        try:
-            body = json.loads(event.get("body", "{}"))
-            uid = body.get("uid", "")
-            password = body.get("password", "")
-        except:
-            return {
-                "statusCode": 400,
-                "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({"success": False, "message": "Invalid JSON"})
-            }
+@app.route('/VINOX', methods=['GET', 'POST'])
+def vinox():
+    if request.method == 'GET':
+        uid = request.args.get('uid', '')
+        password = request.args.get('password', '')
     else:
-        return {
-            "statusCode": 405,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"success": False, "message": "Method not allowed"})
-        }
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "Invalid JSON"}), 400
+        uid = data.get('uid', '')
+        password = data.get('password', '')
     
     if not uid or not password:
-        return {
-            "statusCode": 400,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"success": False, "message": "UID and Password required"})
-        }
+        return jsonify({"success": False, "message": "UID and Password required"}), 400
     
     result = generate_jwt(uid, password)
-    
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-        },
-        "body": json.dumps(result)
-    }
+    return jsonify(result)
+
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        "service": "VINOX JWT Generator",
+        "endpoint": "/VINOX",
+        "methods": ["GET", "POST"],
+        "params": {
+            "GET": "?uid=UID&password=PASS",
+            "POST": "JSON: { 'uid': 'UID', 'password': 'PASS' }"
+        }
+    })
