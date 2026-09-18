@@ -114,10 +114,10 @@ def major_login_protobuf(access_token, open_id):
         encrypted = encrypt_proto(serialized)
         
         context = ssl._create_unverified_context()
-        conn = http.client.HTTPSConnection("loginbp.ggpolarbear.com", context=context, timeout=15)
+        conn = http.client.HTTPSConnection("loginbp.ppmainecoonghj.com", context=context, timeout=15)
         headers = {
             'X-Unity-Version': '2018.4.11f1',
-            'ReleaseVersion': 'OB54',
+            'ReleaseVersion': 'OB55',
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-GA': 'v1 1',
             'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 7.1.2; ASUS_Z01QD Build/QKQ1.190825.002)',
